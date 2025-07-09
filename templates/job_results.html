@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.name }} - Results{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1>{{ job.name }}</h1>
+                <p class="text-muted mb-0">
+                    Job ID: {{ job.job_id }} | 
+                    Created: <script>document.write(formatDate('{{ job.created_at }}'))</script>
+                </p>
+            </div>
+            <div>
+                <a href="/" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Job Statistics -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Job Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Processing Results</h6>
+                        <ul class="list-unstyled">
+                            {% for status, count in stats.status_counts.items() %}
+                            <li>
+                                <span class="badge bg-secondary">{{ count }}</span> {{ status.title() }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Confidence Distribution</h6>
+                        <ul class="list-unstyled">
+                            {% for range, count in stats.confidence_distribution.items() %}
+                            <li>
+                                <span class="badge bg-info">{{ count }}</span> {{ range }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                {% if stats.albums_with_additions > 0 %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-success">
+                            <strong>{{ stats.albums_with_additions }}</strong> albums received genre additions 
+                            ({{ stats.total_additions }} total new genres)
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-cog"></i> Job Configuration</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Confidence Threshold:</strong> {{ job.confidence_threshold }}%</p>
+                <p><strong>Mode:</strong> 
+                    {% if job.dry_run %}
+                        <span class="badge bg-warning">Dry Run</span>
+                    {% else %}
+                        <span class="badge bg-success">Live Mode</span>
+                    {% endif %}
+                </p>
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-primary">{{ job.status.title() }}</span>
+                </p>
+                <p><strong>Progress:</strong> {{ job.processed }}/{{ job.total_albums }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3 align-items-center">
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status Filter</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                            <option value="successful" {% if status_filter == 'successful' %}selected{% endif %}>Successful</option>
+                            <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                            <option value="needs_review" {% if status_filter == 'needs_review' %}selected{% endif %}>Needs Review</option>
+                            <option value="skipped" {% if status_filter == 'skipped' %}selected{% endif %}>Skipped</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="per_page" class="form-label">Per Page</label>
+                        <select name="per_page" id="per_page" class="form-select">
+                            <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-4">
+                            <input type="checkbox" name="changes_only" value="true" 
+                                   id="changes_only" class="form-check-input"
+                                   {% if changes_only %}checked{% endif %}>
+                            <label for="changes_only" class="form-check-label">
+                                Changes Only
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary mt-4">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Album Results ({{ total }} total)</h3>
+            
+            <!-- Pagination Info -->
+            {% if total_pages > 1 %}
+            <nav aria-label="Results pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page - 1 }}&status={{ status_filter }}&changes_only={{ changes_only }}&per_page={{ per_page }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for p in range([1, page - 2]|max, [total_pages + 1, page + 3]|min) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}&status={{ status_filter }}&changes_only={{ changes_only }}&per_page={{ per_page }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page + 1 }}&status={{ status_filter }}&changes_only={{ changes_only }}&per_page={{ per_page }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+        
+        {% if results %}
+        <div class="row">
+            {% for result in results %}
+            <div class="col-12 mb-3">
+                <div class="card album-card {% if not result.diff.has_changes %}no-changes{% endif %}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="card-title">
+                                    {{ result.artist }}
+                                    {% if result.diff.has_changes %}
+                                        <i class="fas fa-edit text-success" title="Genres modified"></i>
+                                    {% endif %}
+                                </h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ result.album }}</h6>
+                                
+                                <!-- Genre Diff -->
+                                <div class="diff-container">
+                                    {% if result.original_genres %}
+                                    <div class="mb-2">
+                                        <strong>Original:</strong>
+                                        {% for genre in result.original_genres %}
+                                        <span class="genre-tag genre-original">{{ genre }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if result.diff.added %}
+                                    <div class="mb-2">
+                                        <strong>Added:</strong>
+                                        {% for genre in result.diff.added %}
+                                        <span class="genre-tag genre-added">
+                                            <i class="fas fa-plus"></i> {{ genre }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if result.diff.removed %}
+                                    <div class="mb-2">
+                                        <strong>Removed:</strong>
+                                        {% for genre in result.diff.removed %}
+                                        <span class="genre-tag genre-removed">
+                                            <i class="fas fa-minus"></i> {{ genre }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if result.final_genres and result.diff.has_changes %}
+                                    <div class="mb-2">
+                                        <strong>Final:</strong>
+                                        {% for genre in result.final_genres %}
+                                        <span class="genre-tag genre-original">{{ genre }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if not result.diff.has_changes and result.original_genres %}
+                                    <div class="changes-summary">
+                                        <i class="fas fa-info-circle"></i> No changes made
+                                    </div>
+                                    {% elif not result.original_genres and not result.final_genres %}
+                                    <div class="changes-summary">
+                                        <i class="fas fa-exclamation-triangle"></i> No genres found
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-end">
+                                <div class="mb-2">
+                                    <span class="status-badge badge 
+                                        {% if result.status == 'successful' %}bg-success
+                                        {% elif result.status == 'failed' %}bg-danger
+                                        {% elif result.status == 'needs_review' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ result.status.title().replace('_', ' ') }}
+                                    </span>
+                                </div>
+                                
+                                {% if result.confidence > 0 %}
+                                <div class="mb-2">
+                                    <div class="confidence-bar">
+                                        <div class="progress">
+                                            <div class="progress-bar {{ 'bg-success' if result.confidence >= 80 else 'bg-warning' if result.confidence >= 50 else 'bg-danger' }}" 
+                                                 style="width: {{ result.confidence }}%"></div>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">{{ "%.1f"|format(result.confidence) }}% confidence</small>
+                                </div>
+                                {% endif %}
+                                
+                                {% if result.processing_time %}
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> {{ "%.2f"|format(result.processing_time) }}s
+                                    </small>
+                                </div>
+                                {% endif %}
+                                
+                                {% if result.files_updated > 0 %}
+                                <div class="mb-2">
+                                    <small class="text-success">
+                                        <i class="fas fa-check"></i> {{ result.files_updated }} files updated
+                                    </small>
+                                </div>
+                                {% endif %}
+                                
+                                {% if result.error_message %}
+                                <div class="mb-2">
+                                    <small class="text-danger">
+                                        <i class="fas fa-exclamation-circle"></i> Error
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Bottom Pagination -->
+        {% if total_pages > 1 %}
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Results pagination">
+                <ul class="pagination">
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page - 1 }}&status={{ status_filter }}&changes_only={{ changes_only }}&per_page={{ per_page }}">Previous</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for p in range([1, page - 2]|max, [total_pages + 1, page + 3]|min) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}&status={{ status_filter }}&changes_only={{ changes_only }}&per_page={{ per_page }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page + 1 }}&status={{ status_filter }}&changes_only={{ changes_only }}&per_page={{ per_page }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="alert alert-info">
+            <h4><i class="fas fa-info-circle"></i> No Results Found</h4>
+            <p>No albums match the current filters. Try adjusting your filter criteria.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+*.db
+*.db-journal
+.cache/
+api_cache.db
+batch_processing.db
+hybrid_genre_cache.db
+quality_control.db
+
+# Configuration with sensitive data
+api_config.json
+api_credentials.json
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+.~lock.*
+
+# Flask
+instance/
+.webassets-cache
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Music files (if you don't want to commit them)
+*.mp3
+*.flac
+*.wav
+*.m4a
+*.ogg
+*.wma
+
+# Backup files
+*.backup
+*.old
+
+# Session files
+flask_session/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Claude
+.claude/

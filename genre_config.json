@@ -1,0 +1,452 @@
+{
+  "mappings": {
+    "Hip-Hop": "Hip Hop",
+    "Hip Hop": "Hip Hop",
+    "Hiphop": "Hip Hop",
+    "Rap": "Hip Hop",
+    "Hip-hop": "Hip Hop",
+    "Electronic": "Electronic",
+    "Electronica": "Electronic",
+    "IDM": "IDM",
+    "Ambient": "Ambient",
+    "Techno": "Techno",
+    "House": "House",
+    "Drum & Bass": "Drum & Bass",
+    "Drum and Bass": "Drum & Bass",
+    "DnB": "Drum & Bass",
+    "Dubstep": "Dubstep",
+    "Synthpop": "Synthpop",
+    "Synth-pop": "Synthpop",
+    "New Wave": "New Wave",
+    "Rock": "Rock",
+    "Rock & Roll": "Rock",
+    "Rock and Roll": "Rock",
+    "Rock/Blues": "Rock",
+    "Hard Rock": "Rock",
+    "Soft Rock": "Rock",
+    "Classic Rock": "Rock",
+    "Progressive Rock": "Rock",
+    "Prog Rock": "Rock",
+    "Psychedelic Rock": "Rock",
+    "Psych Rock": "Rock",
+    "Indie Rock": "Indie Rock",
+    "Alternative Rock": "Alternative",
+    "Punk Rock": "Punk",
+    "Post-Rock": "Post-Rock",
+    "Art Rock": "Art Rock",
+    "Garage Rock": "Garage Rock",
+    "Glam Rock": "Glam Rock",
+    "Alternative": "Alternative",
+    "Alt": "Alternative",
+    "Indie": "Alternative",
+    "Independent": "Alternative",
+    "Jazz": "Jazz",
+    "Bebop": "Jazz",
+    "Cool Jazz": "Jazz",
+    "Free Jazz": "Jazz",
+    "Fusion": "Jazz",
+    "Jazz Fusion": "Jazz",
+    "Smooth Jazz": "Jazz",
+    "Contemporary Jazz": "Jazz",
+    "Blues": "Blues",
+    "Delta Blues": "Blues",
+    "Chicago Blues": "Blues",
+    "Electric Blues": "Blues",
+    "Blues Rock": "Blues",
+    "Country": "Country",
+    "Country Music": "Country",
+    "Country Rock": "Country",
+    "Alt-Country": "Country",
+    "Alternative Country": "Country",
+    "Americana": "Country",
+    "Folk Country": "Country",
+    "Folk": "Folk",
+    "Folk Music": "Folk",
+    "Traditional Folk": "Folk",
+    "Contemporary Folk": "Folk",
+    "Folk Rock": "Folk",
+    "Singer-Songwriter": "Folk",
+    "Reggae": "Reggae",
+    "Dub": "Reggae",
+    "Ska": "Reggae",
+    "Rocksteady": "Reggae",
+    "Dancehall": "Reggae",
+    "Roots Reggae": "Reggae",
+    "Latin": "Latin",
+    "Latin Music": "Latin",
+    "Salsa": "Latin",
+    "Cumbia": "Latin",
+    "Bachata": "Latin",
+    "Merengue": "Latin",
+    "Reggaeton": "Latin",
+    "Bossa Nova": "Latin",
+    "Pop": "Pop",
+    "Pop Music": "Pop",
+    "Dance Pop": "Pop",
+    "Electropop": "Pop",
+    "Synth Pop": "Pop",
+    "Teen Pop": "Pop",
+    "Adult Contemporary": "Pop",
+    "Classical": "Classical",
+    "Classical Music": "Classical",
+    "Baroque": "Classical",
+    "Romantic": "Classical",
+    "Contemporary Classical": "Classical",
+    "Opera": "Classical",
+    "Symphony": "Classical",
+    "R&B": "R&B",
+    "Soul": "R&B",
+    "Rhythm and Blues": "R&B",
+    "Neo-Soul": "R&B",
+    "Contemporary R&B": "R&B",
+    "Motown": "R&B",
+    "Funk": "R&B",
+    "Metal": "Metal",
+    "Heavy Metal": "Heavy Metal",
+    "Death Metal": "Death Metal",
+    "Black Metal": "Black Metal",
+    "Thrash Metal": "Thrash Metal",
+    "Progressive Metal": "Progressive Metal",
+    "Doom Metal": "Doom Metal",
+    "Power Metal": "Power Metal",
+    "Punk": "Punk",
+    "Post-Punk": "Punk",
+    "Hardcore Punk": "Punk",
+    "Pop Punk": "Punk",
+    "World": "World",
+    "World Music": "World",
+    "African": "World",
+    "Celtic": "World",
+    "Indian": "World",
+    "Middle Eastern": "World",
+    "Asian": "World",
+    "Other": "Other",
+    "Unknown": "Other",
+    "Unclassified": "Other",
+    "Various": "Other",
+    "Soundtrack": "Soundtrack",
+    "Film Score": "Soundtrack",
+    "Game Music": "Soundtrack",
+    "Easy Listening": "Easy Listening",
+    "Vocal": "Vocal",
+    "Instrumental": "Instrumental",
+    "Experimental": "Experimental",
+    "Avant-Garde": "Experimental",
+    "Noise": "Experimental"
+  },
+  "hierarchy": {
+    "Ambient": [
+      "Electronic"
+    ],
+    "Techno": [
+      "Electronic"
+    ],
+    "House": [
+      "Electronic"
+    ],
+    "Drum & Bass": [
+      "Electronic"
+    ],
+    "Dubstep": [
+      "Electronic"
+    ],
+    "IDM": [
+      "Electronic"
+    ],
+    "Synthpop": [
+      "Electronic",
+      "Pop"
+    ],
+    "New Wave": [
+      "Electronic",
+      "Rock"
+    ],
+    "Hard Rock": [
+      "Rock"
+    ],
+    "Progressive Rock": [
+      "Rock"
+    ],
+    "Psychedelic Rock": [
+      "Rock"
+    ],
+    "Punk Rock": [
+      "Rock",
+      "Punk"
+    ],
+    "Alternative Rock": [
+      "Rock",
+      "Alternative"
+    ],
+    "Indie Rock": [
+      "Rock",
+      "Alternative"
+    ],
+    "Post-Rock": [
+      "Rock"
+    ],
+    "Art Rock": [
+      "Rock"
+    ],
+    "Garage Rock": [
+      "Rock"
+    ],
+    "Glam Rock": [
+      "Rock"
+    ],
+    "Bebop": [
+      "Jazz"
+    ],
+    "Cool Jazz": [
+      "Jazz"
+    ],
+    "Free Jazz": [
+      "Jazz"
+    ],
+    "Fusion": [
+      "Jazz"
+    ],
+    "Smooth Jazz": [
+      "Jazz"
+    ],
+    "Delta Blues": [
+      "Blues"
+    ],
+    "Chicago Blues": [
+      "Blues"
+    ],
+    "Electric Blues": [
+      "Blues"
+    ],
+    "Blues Rock": [
+      "Blues",
+      "Rock"
+    ],
+    "Country Rock": [
+      "Country",
+      "Rock"
+    ],
+    "Alt-Country": [
+      "Country",
+      "Alternative"
+    ],
+    "Americana": [
+      "Country",
+      "Folk"
+    ],
+    "Folk Rock": [
+      "Folk",
+      "Rock"
+    ],
+    "Contemporary Folk": [
+      "Folk"
+    ],
+    "Singer-Songwriter": [
+      "Folk"
+    ],
+    "Dub": [
+      "Reggae"
+    ],
+    "Ska": [
+      "Reggae"
+    ],
+    "Rocksteady": [
+      "Reggae"
+    ],
+    "Dancehall": [
+      "Reggae"
+    ],
+    "Roots Reggae": [
+      "Reggae"
+    ],
+    "Salsa": [
+      "Latin"
+    ],
+    "Cumbia": [
+      "Latin"
+    ],
+    "Bachata": [
+      "Latin"
+    ],
+    "Merengue": [
+      "Latin"
+    ],
+    "Reggaeton": [
+      "Latin"
+    ],
+    "Bossa Nova": [
+      "Latin",
+      "Jazz"
+    ],
+    "Dance Pop": [
+      "Pop"
+    ],
+    "Electropop": [
+      "Pop",
+      "Electronic"
+    ],
+    "Teen Pop": [
+      "Pop"
+    ],
+    "Neo-Soul": [
+      "R&B"
+    ],
+    "Funk": [
+      "R&B"
+    ],
+    "Motown": [
+      "R&B"
+    ],
+    "Heavy Metal": [
+      "Metal"
+    ],
+    "Death Metal": [
+      "Metal"
+    ],
+    "Black Metal": [
+      "Metal"
+    ],
+    "Thrash Metal": [
+      "Metal"
+    ],
+    "Progressive Metal": [
+      "Metal"
+    ],
+    "Doom Metal": [
+      "Metal"
+    ],
+    "Power Metal": [
+      "Metal"
+    ],
+    "Post-Punk": [
+      "Punk"
+    ],
+    "Hardcore Punk": [
+      "Punk"
+    ],
+    "Pop Punk": [
+      "Punk",
+      "Pop"
+    ],
+    "Baroque": [
+      "Classical"
+    ],
+    "Romantic": [
+      "Classical"
+    ],
+    "Contemporary Classical": [
+      "Classical"
+    ],
+    "Opera": [
+      "Classical"
+    ],
+    "African": [
+      "World"
+    ],
+    "Celtic": [
+      "World"
+    ],
+    "Indian": [
+      "World"
+    ],
+    "Middle Eastern": [
+      "World"
+    ],
+    "Asian": [
+      "World"
+    ]
+  },
+  "valid_genres": [
+    "Progressive Rock",
+    "Asian",
+    "Salsa",
+    "Contemporary Classical",
+    "Ambient",
+    "Alt-Country",
+    "Reggaeton",
+    "Latin",
+    "Funk",
+    "Merengue",
+    "Electropop",
+    "Dub",
+    "House",
+    "Hardcore Punk",
+    "Experimental",
+    "Death Metal",
+    "Vocal",
+    "Dance Pop",
+    "Neo-Soul",
+    "Rocksteady",
+    "Instrumental",
+    "Country",
+    "Fusion",
+    "Blues",
+    "Metal",
+    "Garage Rock",
+    "Thrash Metal",
+    "Pop Punk",
+    "Pop",
+    "Indie Rock",
+    "Contemporary Folk",
+    "Smooth Jazz",
+    "Punk",
+    "Synthpop",
+    "Singer-Songwriter",
+    "Celtic",
+    "Indian",
+    "Psychedelic Rock",
+    "Heavy Metal",
+    "Progressive Metal",
+    "Easy Listening",
+    "New Wave",
+    "Folk",
+    "Black Metal",
+    "Teen Pop",
+    "Electric Blues",
+    "Delta Blues",
+    "African",
+    "Post-Rock",
+    "Hard Rock",
+    "Reggae",
+    "Cumbia",
+    "Americana",
+    "Ska",
+    "Bebop",
+    "Rock",
+    "Country Rock",
+    "Classical",
+    "Dubstep",
+    "Art Rock",
+    "Middle Eastern",
+    "Bossa Nova",
+    "Chicago Blues",
+    "Roots Reggae",
+    "Glam Rock",
+    "Drum & Bass",
+    "Punk Rock",
+    "Bachata",
+    "Motown",
+    "Post-Punk",
+    "Opera",
+    "Power Metal",
+    "Other",
+    "Alternative",
+    "Jazz",
+    "Free Jazz",
+    "Electronic",
+    "Folk Rock",
+    "World",
+    "Alternative Rock",
+    "Romantic",
+    "R&B",
+    "Doom Metal",
+    "Blues Rock",
+    "Hip Hop",
+    "IDM",
+    "Baroque",
+    "Soundtrack",
+    "Techno",
+    "Dancehall",
+    "Cool Jazz"
+  ]
+}

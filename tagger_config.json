@@ -1,0 +1,9 @@
+{
+  "confidence_threshold": 95.0,
+  "auto_update_high_confidence": false,
+  "max_genres_per_album": 5,
+  "api_rate_limit": 1.0,
+  "batch_size": 100,
+  "web_interface_enabled": true,
+  "web_interface_port": 5000
+}
