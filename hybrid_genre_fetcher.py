@@ -186,7 +186,8 @@ class HybridGenreFetcher:
                 source=source,
                 genres=genres,
                 confidence=result[1],
-                weight=result[2]
+                weight=result[2],
+                match_quality=result[1] / 100.0  # Convert confidence back to match quality
             )
         return None
     
@@ -242,11 +243,11 @@ class HybridGenreFetcher:
                 
                 score = (artist_match + album_match) / 2
                 
-                # Debug logging disabled for production
-                # if len(results['albums']['items']) == 10:  # Only log first search
-                #     print(f"    SPOTIFY: '{artist}' vs '{album_item['artists'][0]['name']}' = {artist_match:.2f}")
-                #     print(f"    SPOTIFY: '{album}' vs '{album_item['name']}' = {album_match:.2f}")
-                #     print(f"    SPOTIFY: Combined score = {score:.2f}")
+                # Debug logging for investigation
+                if len(results['albums']['items']) > 0 and best_score < 0.7:  # Log when score is low
+                    print(f"    SPOTIFY: '{artist}' vs '{album_item['artists'][0]['name']}' = {artist_match:.2f}")
+                    print(f"    SPOTIFY: '{album}' vs '{album_item['name']}' = {album_match:.2f}")
+                    print(f"    SPOTIFY: Combined score = {score:.2f}")
                 
                 if score > best_score:
                     best_score = score
@@ -254,6 +255,9 @@ class HybridGenreFetcher:
             
             if not best_match or best_score < 0.7:
                 print(f"    SPOTIFY: No match found (best score: {best_score:.2f})")
+                print(f"    SPOTIFY: Query was: artist:'{artist}' album:'{album}'")
+                if best_match:
+                    print(f"    SPOTIFY: Best match was: '{best_match['artists'][0]['name']}' - '{best_match['name']}'")
                 return None
             
             # Get artist details for genres

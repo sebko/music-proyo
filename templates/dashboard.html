@@ -1,0 +1,84 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Music Genre Tagger{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Music Library Dashboard</h1>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Albums</h5>
+                <h2 class="text-primary">{{ stats.total_albums }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">With Genres</h5>
+                <h2 class="text-success">{{ stats.albums_with_genres }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Without Genres</h5>
+                <h2 class="text-warning">{{ stats.albums_without_genres }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Coverage</h5>
+                <h2 class="text-info">{{ "%.1f"|format(stats.genre_coverage) }}%</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="/albums?filter=without_genres" class="btn btn-primary mb-2">
+                    Review Albums Without Genres
+                </a><br>
+                <a href="/batch" class="btn btn-success mb-2">
+                    Start Batch Processing
+                </a><br>
+                <a href="/quality" class="btn btn-info mb-2">
+                    Run Quality Check
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Jobs</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_jobs %}
+                    {% for job in recent_jobs %}
+                    <p>{{ job.name }} - {{ job.status }}</p>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent jobs</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

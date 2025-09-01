@@ -248,11 +248,17 @@ class MusicGenreTagger:
         """Start web interface"""
         try:
             from web_interface import app, initialize_components
+            from process_cleanup import ProcessCleanup
             
             print("🌐 Starting web interface...")
+            
+            # Clean up any existing processes first
+            ProcessCleanup.cleanup_script_processes('web_interface.py')
+            port = args.port or self.config['web_interface_port']
+            ProcessCleanup.cleanup_port_processes(port)
+            
             initialize_components()
             
-            port = args.port or self.config['web_interface_port']
             print(f"Web interface available at: http://localhost:{port}")
             
             app.run(debug=args.debug, host='0.0.0.0', port=port)

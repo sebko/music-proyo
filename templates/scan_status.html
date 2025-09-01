@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Album Scan Status - Music Genre Tagger{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Album Scan Status</h1>
+        <p class="text-muted">Track which albums have been updated vs. those still requiring scans</p>
+    </div>
+</div>
+
+<!-- Status Summary Cards -->
+<div class="row mt-4" id="status-summary">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Albums</h5>
+                <h2 class="text-primary" id="total-count">-</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Updated</h5>
+                <h2 class="text-success" id="updated-count">-</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Needs Scan</h5>
+                <h2 class="text-warning" id="needs-scan-count">-</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Needs Review</h5>
+                <h2 class="text-info" id="needs-review-count">-</h2>
+                <small class="text-muted">Failed: <span id="failed-count">-</span></small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Controls -->
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="status-filter" class="form-label">Status Filter:</label>
+                        <select id="status-filter" class="form-select">
+                            <option value="all">All Albums</option>
+                            <option value="updated">Updated</option>
+                            <option value="needs_scan">Needs Scan</option>
+                            <option value="needs_review">Needs Review</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="search-input" class="form-label">Search:</label>
+                        <input type="text" id="search-input" class="form-control" placeholder="Search artist or album...">
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <button id="refresh-btn" class="btn btn-outline-primary">
+                            🔄 Refresh Data
+                        </button>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">
+                            Showing <span id="results-info">0</span> albums
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="/batch" class="btn btn-success btn-sm mb-2 d-block">
+                    🚀 Start Batch Scan
+                </a>
+                <button id="scan-unprocessed-btn" class="btn btn-primary btn-sm mb-2 d-block">
+                    📊 Scan Unprocessed Only
+                </button>
+                <a href="/albums?filter=needs_review" class="btn btn-warning btn-sm d-block">
+                    👀 Review Queue
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Table -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Album Status Details</h5>
+                <div id="loading-indicator" class="spinner-border spinner-border-sm" role="status" style="display: none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                                <th>Tracks</th>
+                                <th>Current Genres</th>
+                                <th>Confidence</th>
+                                <th>Last Processed</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="albums-table-body">
+                            <tr>
+                                <td colspan="8" class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading album data...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <nav aria-label="Albums pagination">
+                    <ul id="pagination" class="pagination justify-content-center">
+                        <!-- Pagination will be populated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let currentStatus = 'all';
+let currentSearch = '';
+
+// Load album data
+function loadAlbumData(page = 1, status = 'all', search = '') {
+    $('#loading-indicator').show();
+    
+    const params = new URLSearchParams({
+        page: page,
+        per_page: 25,
+        status: status,
+        search: search
+    });
+    
+    fetch(`/api/scan-status?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            updateSummaryCards(data.stats);
+            updateAlbumsTable(data.albums);
+            updatePagination(data);
+            updateResultsInfo(data);
+        })
+        .catch(error => {
+            console.error('Error loading album data:', error);
+            $('#albums-table-body').html(`
+                <tr>
+                    <td colspan="8" class="text-center text-danger">
+                        Error loading data. Please try again.
+                    </td>
+                </tr>
+            `);
+        })
+        .finally(() => {
+            $('#loading-indicator').hide();
+        });
+}
+
+// Update summary cards
+function updateSummaryCards(stats) {
+    $('#total-count').text(stats.total);
+    $('#updated-count').text(stats.updated);
+    $('#needs-scan-count').text(stats.needs_scan);
+    $('#needs-review-count').text(stats.needs_review);
+    $('#failed-count').text(stats.failed);
+}
+
+// Update albums table
+function updateAlbumsTable(albums) {
+    const tbody = $('#albums-table-body');
+    
+    if (albums.length === 0) {
+        tbody.html(`
+            <tr>
+                <td colspan="8" class="text-center">
+                    No albums found matching the current filters.
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    const rows = albums.map(album => {
+        const statusBadge = `<span class="badge bg-${album.status_class}">${album.status_label}</span>`;
+        
+        const genres = album.current_genres.length > 0 
+            ? album.current_genres.slice(0, 3).join(', ') + (album.current_genres.length > 3 ? '...' : '')
+            : '<span class="text-muted">No genres</span>';
+        
+        const confidence = album.confidence 
+            ? `${album.confidence}%`
+            : '<span class="text-muted">-</span>';
+        
+        const processedAt = album.processed_at 
+            ? new Date(album.processed_at).toLocaleDateString()
+            : '<span class="text-muted">Never</span>';
+        
+        const actions = album.scan_status === 'failed' && album.error_message
+            ? `<button class="btn btn-sm btn-outline-info" onclick="showError('${album.album_key}', '${album.error_message.replace(/'/g, "\\'")}')">View Error</button>`
+            : `<a href="/api/album/${album.album_key}" class="btn btn-sm btn-outline-primary">View Details</a>`;
+        
+        return `
+            <tr>
+                <td>${statusBadge}</td>
+                <td><strong>${album.artist}</strong></td>
+                <td>${album.album}</td>
+                <td>${album.track_count}</td>
+                <td>${genres}</td>
+                <td>${confidence}</td>
+                <td>${processedAt}</td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    tbody.html(rows);
+}
+
+// Update pagination
+function updatePagination(data) {
+    const pagination = $('#pagination');
+    const totalPages = data.total_pages;
+    const currentPage = data.page;
+    
+    if (totalPages <= 1) {
+        pagination.empty();
+        return;
+    }
+    
+    let paginationHtml = '';
+    
+    // Previous button
+    if (currentPage > 1) {
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+            </li>
+        `;
+    }
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const activeClass = i === currentPage ? 'active' : '';
+        paginationHtml += `
+            <li class="page-item ${activeClass}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    // Next button
+    if (currentPage < totalPages) {
+        paginationHtml += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+            </li>
+        `;
+    }
+    
+    pagination.html(paginationHtml);
+}
+
+// Update results info
+function updateResultsInfo(data) {
+    const start = ((data.page - 1) * data.per_page) + 1;
+    const end = Math.min(data.page * data.per_page, data.total);
+    $('#results-info').text(`${start}-${end} of ${data.total}`);
+}
+
+// Change page
+function changePage(page) {
+    currentPage = page;
+    loadAlbumData(currentPage, currentStatus, currentSearch);
+}
+
+// Show error message
+function showError(albumKey, errorMessage) {
+    alert(`Error for album ${albumKey}:\n\n${errorMessage}`);
+}
+
+// Event handlers
+$(document).ready(function() {
+    // Initial load
+    loadAlbumData();
+    
+    // Filter change
+    $('#status-filter').change(function() {
+        currentStatus = $(this).val();
+        currentPage = 1;
+        loadAlbumData(currentPage, currentStatus, currentSearch);
+    });
+    
+    // Search input (debounced)
+    let searchTimeout;
+    $('#search-input').on('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentSearch = $(this).val();
+            currentPage = 1;
+            loadAlbumData(currentPage, currentStatus, currentSearch);
+        }, 500);
+    });
+    
+    // Refresh button
+    $('#refresh-btn').click(function() {
+        loadAlbumData(currentPage, currentStatus, currentSearch);
+    });
+    
+    // Scan unprocessed button
+    $('#scan-unprocessed-btn').click(function() {
+        if (confirm('This will start a batch scan for all unprocessed albums. Continue?')) {
+            // TODO: Implement batch scan for unprocessed albums
+            alert('Batch scan functionality will be implemented in the batch processing interface.');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -17,6 +17,7 @@ from enhanced_api_client import EnhancedAPIClient
 from genre_standardizer import GenreStandardizer
 from smart_genre_assignment import SmartGenreAssignment
 from quality_control import QualityControlSystem
+from process_cleanup import ProcessCleanup
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
@@ -305,6 +306,140 @@ def api_review_queue():
     
     return jsonify({'items': queue_items})
 
+@app.route('/albums/scan-status')
+def scan_status():
+    """Show album scan status view"""
+    if not matcher or not matcher.albums:
+        return render_template('loading.html', message="Loading album data...")
+    
+    return render_template('scan_status.html')
+
+@app.route('/api/scan-status')
+def api_scan_status():
+    """API endpoint for scan status data"""
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 50))
+    status_filter = request.args.get('status', 'all')
+    search = request.args.get('search', '')
+    
+    if not matcher:
+        return jsonify({'error': 'System not initialized'}), 500
+    
+    # Get processed albums from database
+    db = BatchDatabase()
+    processed_albums = {}
+    
+    try:
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT album_key, artist, album, status, confidence, 
+                       files_updated, created_at, error_message
+                FROM album_results
+                ORDER BY created_at DESC
+            ''')
+            
+            for row in cursor.fetchall():
+                album_key = row[0]
+                processed_albums[album_key] = {
+                    'artist': row[1],
+                    'album': row[2],
+                    'status': row[3],
+                    'confidence': row[4],
+                    'files_updated': row[5],
+                    'created_at': row[6],
+                    'error_message': row[7]
+                }
+    except Exception as e:
+        print(f"Warning: Could not query database: {e}")
+    
+    # Categorize all albums
+    categorized_albums = []
+    
+    for album_key, album_info in matcher.albums.items():
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            if (search_lower not in album_info['artist'].lower() and 
+                search_lower not in album_info['album'].lower()):
+                continue
+        
+        # Determine status
+        if album_key in processed_albums:
+            processed = processed_albums[album_key]
+            if processed['status'] == 'completed' and processed['files_updated'] > 0:
+                scan_status = 'updated'
+                status_label = 'Updated'
+                status_class = 'success'
+            elif processed['status'] == 'needs_review':
+                scan_status = 'needs_review'
+                status_label = 'Needs Review'
+                status_class = 'warning'
+            elif processed['status'] == 'failed':
+                scan_status = 'failed'
+                status_label = 'Failed'
+                status_class = 'danger'
+            else:
+                scan_status = 'needs_scan'
+                status_label = 'Needs Scan'
+                status_class = 'secondary'
+        else:
+            scan_status = 'needs_scan'
+            status_label = 'Needs Scan'
+            status_class = 'secondary'
+            processed = None
+        
+        # Apply status filter
+        if status_filter != 'all' and scan_status != status_filter:
+            continue
+        
+        album_data = {
+            'album_key': album_key,
+            'artist': album_info['artist'],
+            'album': album_info['album'],
+            'scan_status': scan_status,
+            'status_label': status_label,
+            'status_class': status_class,
+            'track_count': len(album_info['tracks']),
+            'has_genres': bool(album_info['genres']),
+            'current_genres': list(album_info['genres']) if album_info['genres'] else []
+        }
+        
+        # Add processing info if available
+        if processed:
+            album_data.update({
+                'confidence': processed['confidence'],
+                'files_updated': processed['files_updated'],
+                'processed_at': processed['created_at'],
+                'error_message': processed['error_message']
+            })
+        
+        categorized_albums.append(album_data)
+    
+    # Pagination
+    total = len(categorized_albums)
+    start = (page - 1) * per_page
+    end = start + per_page
+    albums_page = categorized_albums[start:end]
+    
+    # Calculate summary stats
+    stats = {
+        'total': len(matcher.albums),
+        'updated': len([a for a in categorized_albums if a['scan_status'] == 'updated']),
+        'needs_scan': len([a for a in categorized_albums if a['scan_status'] == 'needs_scan']),
+        'needs_review': len([a for a in categorized_albums if a['scan_status'] == 'needs_review']),
+        'failed': len([a for a in categorized_albums if a['scan_status'] == 'failed'])
+    }
+    
+    return jsonify({
+        'albums': albums_page,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page,
+        'stats': stats
+    })
+
 @app.route('/api/quality/analyze')
 def api_quality_analyze():
     """Run quality control analysis"""
@@ -492,6 +627,11 @@ if __name__ == "__main__":
     create_templates()
     
     print("Starting Music Genre Tagger Web Interface...")
+    
+    # Clean up any existing processes first
+    ProcessCleanup.cleanup_script_processes('web_interface.py')
+    ProcessCleanup.cleanup_port_processes(5000)
+    
     print("Initializing components (this may take a moment)...")
     
     try:

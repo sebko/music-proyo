@@ -2,6 +2,25 @@
 
 **Goal**: Categorize 2,144+ albums with accurate, multi-genre tags using professional-grade music metadata management and comprehensive quality control.
 
+## 🚀 PRIMARY ENTRY POINT
+
+**Main Entry Point**: `hybrid_batch_processor.py`
+
+This is the **PRIMARY ENTRY POINT** that:
+1. **First checks for and kills any rogue processes** (web servers, batch processors, etc.)
+2. **Scans your music library** and extracts metadata
+3. **Queries multiple music APIs** (Spotify, MusicBrainz, Last.fm, Discogs, Deezer)
+4. **Intelligently aggregates genres** with confidence-based weighting
+5. **Updates file tags** with standardized, high-quality genre information
+
+### Quick Start:
+```bash
+# The main entry point to tag your music library with API-based genres
+python3 hybrid_batch_processor.py
+```
+
+This script automatically handles process cleanup before starting the tagging process and uses the sophisticated multi-source API approach for accurate genre detection.
+
 ## System Overview
 
 This is a **sophisticated, enterprise-grade music library management system** designed to automatically analyze and categorize music collections with accurate, standardized genre tags. The system goes far beyond basic genre tagging to provide a complete solution for music metadata management, quality control, and library organization.
@@ -57,9 +76,24 @@ This is a **sophisticated, enterprise-grade music library management system** de
 
 ### Primary Entry Points
 
-#### Main CLI Application
+#### 1. Main Entry Point - Hybrid Batch Processor
 ```bash
-# Main command structure
+# PRIMARY ENTRY POINT - Enterprise-grade batch processing with multi-source APIs
+python3 hybrid_batch_processor.py
+
+# This script:
+# - Automatically cleans up any rogue processes first
+# - Scans your entire music library for audio files
+# - Queries multiple music APIs (Spotify, MusicBrainz, Last.fm, Discogs, Deezer)
+# - Uses intelligent genre aggregation with confidence scoring
+# - Applies standardized genres with safety controls
+# - Tracks progress in SQLite database
+# - Provides detailed statistics and results
+```
+
+#### 2. Advanced CLI Application (For API-based tagging)
+```bash
+# Advanced command structure for API-based genre fetching
 python3 music_genre_tagger.py [MUSIC_PATH] [COMMAND] [OPTIONS]
 
 # Available commands:
@@ -68,12 +102,16 @@ batch    - Run batch processing with confidence thresholds
 review   - Manual review interface for uncertain matches
 web      - Start comprehensive web management interface
 test     - Run system tests and validation
+
+# Note: This uses APIs (Spotify, MusicBrainz, etc.) to fetch genres
 ```
 
-#### Hybrid Batch Processor (Production Scale)
+#### 3. Library Analysis Tool
 ```bash
-# Enterprise-grade batch processing
-python3 hybrid_batch_processor.py
+# Analyze your library to see potential API match rates
+python3 library_match_scanner.py
+
+# This helps you understand how many albums will get genre matches from APIs
 ```
 
 ### Recommended Workflows
@@ -344,17 +382,25 @@ Expected performance metrics with 2,144+ albums:
 ### Quick Start Commands
 
 ```bash
+# PRIMARY ENTRY POINT - Production batch processing with multi-source APIs
+python3 hybrid_batch_processor.py
+
+# Additional tools and options:
+
+# Analyze library match potential
+python3 library_match_scanner.py
+
 # Comprehensive library analysis
 python3 music_genre_tagger.py /Volumes/T7/Albums analyze --detailed --quality
 
 # Safe batch processing test
 python3 music_genre_tagger.py /Volumes/T7/Albums batch --dry-run --sample-size 10
 
-# Production batch processing
-python3 hybrid_batch_processor.py
-
 # Management interface
 python3 music_genre_tagger.py /Volumes/T7/Albums web
+
+# Visual genre diff viewer
+python3 genre_diff_viewer.py
 ```
 
 ---
