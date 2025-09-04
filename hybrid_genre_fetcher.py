@@ -493,7 +493,7 @@ class HybridGenreFetcher:
             return None
     
     def _calculate_string_similarity(self, str1: str, str2: str) -> float:
-        """Calculate similarity between two strings"""
+        """Calculate similarity between two strings using SequenceMatcher"""
         from difflib import SequenceMatcher
         return SequenceMatcher(None, str1, str2).ratio()
     
@@ -531,28 +531,16 @@ class HybridGenreFetcher:
             if score >= min_score and len(final_genres) < 10:
                 final_genres.append(genre)
         
-        # Calculate overall confidence - PURE MATCH QUALITY FOCUS
+        # Simplified confidence calculation
         if not genre_sources:
             final_confidence = 0
         else:
-            # Focus purely on string matching quality
-            source_confidences = []
-            for source in genre_sources:
-                # Use actual match quality (string similarity) as primary factor
-                match_confidence = getattr(source, 'match_quality', 0.7)  # Default if missing
-                # print(f"      DEBUG: {source.source} match_quality = {match_confidence}")  # Disabled
-                weighted_confidence = match_confidence * source.weight * 100
-                source_confidences.append(weighted_confidence)
+            # Simple confidence based on sources and genres found
+            base_confidence = 60 if final_genres else 0  # Base confidence if we found any genres
+            source_bonus = len(genre_sources) * 10        # +10% per source
+            genre_bonus = min(20, len(final_genres) * 5)  # +5% per genre, max +20%
             
-            # Average confidence from all sources
-            avg_confidence = sum(source_confidences) / len(source_confidences)
-            
-            # Moderate boost for multiple sources agreeing on same album
-            source_count_bonus = min(15, (len(genre_sources) - 1) * 10)  # Up to +15% for multiple sources
-            
-            # REMOVED: Genre coverage bonus - focus purely on match quality
-            
-            final_confidence = min(100, avg_confidence + source_count_bonus)
+            final_confidence = min(100, base_confidence + source_bonus + genre_bonus)
         
         # Create reasoning
         sources_used = [source.source for source in genre_sources]

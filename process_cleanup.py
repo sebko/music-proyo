@@ -62,7 +62,7 @@ class ProcessCleanup:
         return processes
     
     @staticmethod
-    def kill_processes(processes: List[Dict], force: bool = False) -> Dict:
+    def kill_processes(processes: List[Dict], force: bool = False, verbose: bool = False) -> Dict:
         """Kill a list of processes"""
         results = {
             'killed': [],
@@ -79,14 +79,22 @@ class ProcessCleanup:
                 if pid == os.getpid():
                     continue
                 
+                if verbose:
+                    method = "SIGKILL" if force else "SIGTERM->SIGKILL"
+                    print(f"    │   ├── Terminating PID {pid} ({method})...")
+                
                 # Try graceful termination first
                 if not force:
                     proc.terminate()
                     try:
                         proc.wait(timeout=3)
                         results['killed'].append(pid)
+                        if verbose:
+                            print(f"    │   │   └── ✅ Gracefully terminated")
                         continue
                     except psutil.TimeoutExpired:
+                        if verbose:
+                            print(f"    │   │   ├── Timeout, forcing kill...")
                         pass
                 
                 # Force kill if graceful termination failed
@@ -94,19 +102,27 @@ class ProcessCleanup:
                 try:
                     proc.wait(timeout=1)
                     results['killed'].append(pid)
+                    if verbose:
+                        print(f"    │   │   └── ✅ Force killed")
                 except psutil.TimeoutExpired:
                     results['failed'].append(pid)
+                    if verbose:
+                        print(f"    │   │   └── ❌ Kill timeout")
                     
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 # Process already gone or no permission
                 results['killed'].append(proc_info['pid'])
+                if verbose:
+                    print(f"    │   │   └── ✅ Already terminated")
             except Exception as e:
                 results['failed'].append(proc_info['pid'])
+                if verbose:
+                    print(f"    │   │   └── ❌ Error: {e}")
         
         return results
     
     @staticmethod
-    def cleanup_script_processes(script_name: str, exclude_current: bool = True) -> Dict:
+    def cleanup_script_processes(script_name: str, exclude_current: bool = True, force_kill: bool = False, verbose: bool = False) -> Dict:
         """Clean up all processes running a specific script"""
         processes = ProcessCleanup.find_processes_by_script(script_name)
         
@@ -116,39 +132,65 @@ class ProcessCleanup:
             processes = [p for p in processes if p['pid'] != current_pid]
         
         if not processes:
+            if verbose:
+                print(f"    No existing {script_name} processes found")
             return {'killed': [], 'failed': [], 'total': 0}
         
-        print(f"🧹 Found {len(processes)} existing {script_name} processes")
-        for proc in processes:
-            print(f"  - PID {proc['pid']}: {proc['cmdline']}")
+        if verbose:
+            print(f"    Found {len(processes)} existing {script_name} processes")
+            for proc in processes:
+                print(f"    ├── PID {proc['pid']}: {proc['cmdline'][:80]}{'...' if len(proc['cmdline']) > 80 else ''}")
+        else:
+            print(f"🧹 Found {len(processes)} existing {script_name} processes")
+            for proc in processes:
+                print(f"  - PID {proc['pid']}: {proc['cmdline']}")
         
-        results = ProcessCleanup.kill_processes(processes)
+        results = ProcessCleanup.kill_processes(processes, force=force_kill, verbose=verbose)
         
-        if results['killed']:
-            print(f"✅ Terminated {len(results['killed'])} processes: {results['killed']}")
-        if results['failed']:
-            print(f"❌ Failed to terminate {len(results['failed'])} processes: {results['failed']}")
+        if verbose:
+            if results['killed']:
+                print(f"    ├── ✅ Terminated {len(results['killed'])} processes")
+            if results['failed']:
+                print(f"    ├── ❌ Failed to terminate {len(results['failed'])} processes")
+        else:
+            if results['killed']:
+                print(f"✅ Terminated {len(results['killed'])} processes: {results['killed']}")
+            if results['failed']:
+                print(f"❌ Failed to terminate {len(results['failed'])} processes: {results['failed']}")
         
         return results
     
     @staticmethod
-    def cleanup_port_processes(port: int) -> Dict:
+    def cleanup_port_processes(port: int, force_kill: bool = False, verbose: bool = False) -> Dict:
         """Clean up all processes using a specific port"""
         processes = ProcessCleanup.find_processes_by_port(port)
         
         if not processes:
+            if verbose:
+                print(f"    No processes using port {port}")
             return {'killed': [], 'failed': [], 'total': 0}
         
-        print(f"🧹 Found {len(processes)} processes using port {port}")
-        for proc in processes:
-            print(f"  - PID {proc['pid']}: {proc['name']}")
+        if verbose:
+            print(f"    Found {len(processes)} processes using port {port}")
+            for proc in processes:
+                print(f"    ├── PID {proc['pid']}: {proc['name']}")
+        else:
+            print(f"🧹 Found {len(processes)} processes using port {port}")
+            for proc in processes:
+                print(f"  - PID {proc['pid']}: {proc['name']}")
         
-        results = ProcessCleanup.kill_processes(processes)
+        results = ProcessCleanup.kill_processes(processes, force=force_kill, verbose=verbose)
         
-        if results['killed']:
-            print(f"✅ Freed port {port} by terminating {len(results['killed'])} processes")
-        if results['failed']:
-            print(f"❌ Failed to terminate {len(results['failed'])} processes on port {port}")
+        if verbose:
+            if results['killed']:
+                print(f"    ├── ✅ Freed port {port} by terminating {len(results['killed'])} processes")
+            if results['failed']:
+                print(f"    ├── ❌ Failed to terminate {len(results['failed'])} processes")
+        else:
+            if results['killed']:
+                print(f"✅ Freed port {port} by terminating {len(results['killed'])} processes")
+            if results['failed']:
+                print(f"❌ Failed to terminate {len(results['failed'])} processes on port {port}")
         
         return results
     
@@ -156,13 +198,14 @@ class ProcessCleanup:
     def cleanup_music_system_processes() -> Dict:
         """Clean up all known music system processes"""
         scripts_to_cleanup = [
+            'music_dashboard.py',
             'genre_diff_viewer.py',
             'web_interface.py',
             'music_genre_tagger.py',
-            'hybrid_batch_processor.py'
+            'batch_processor.py'
         ]
         
-        ports_to_cleanup = [5000, 5001]
+        ports_to_cleanup = [5000, 5002]
         
         total_results = {'killed': [], 'failed': [], 'total': 0}
         

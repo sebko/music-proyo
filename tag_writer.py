@@ -17,13 +17,13 @@ except ImportError:
     print("mutagen not installed. Run: pip install mutagen")
     exit(1)
 
-from album_matcher import AlbumMatcher
+from album_scanner import AlbumScanner
 
 class TagWriter:
     def __init__(self, music_path: str):
         self.music_path = music_path
         
-        self.matcher = AlbumMatcher(music_path)
+        self.matcher = AlbumScanner(music_path)
         self.matcher.scan_filesystem()
         
     
@@ -49,6 +49,68 @@ class TagWriter:
                 merged.append(genre)
         
         return merged
+
+    def write_metadata_tags(self, file_path: Path, artist: Optional[str] = None, 
+                           album: Optional[str] = None, test_mode: bool = True) -> bool:
+        """Write artist and album metadata tags to music file"""
+        try:
+            # Load the audio file
+            audio_file = File(file_path)
+            if not audio_file:
+                print(f"Could not read audio file: {file_path}")
+                return False
+            
+            changes = []
+            
+            # Update artist if provided
+            if artist:
+                if isinstance(audio_file, FLAC):
+                    old_artist = audio_file.get('ARTIST', [''])[0]
+                    audio_file['ARTIST'] = artist
+                    changes.append(f"Artist: '{old_artist}' → '{artist}'")
+                elif isinstance(audio_file, MP3):
+                    if audio_file.tags is None:
+                        audio_file.add_tags()
+                    old_artist = str(audio_file.tags.get('TPE1', ''))
+                    if 'TPE1' in audio_file.tags:
+                        del audio_file.tags['TPE1']
+                    audio_file.tags.add(TPE1(encoding=3, text=artist))
+                    changes.append(f"Artist: '{old_artist}' → '{artist}'")
+            
+            # Update album if provided  
+            if album:
+                if isinstance(audio_file, FLAC):
+                    old_album = audio_file.get('ALBUM', [''])[0]
+                    audio_file['ALBUM'] = album
+                    changes.append(f"Album: '{old_album}' → '{album}'")
+                elif isinstance(audio_file, MP3):
+                    if audio_file.tags is None:
+                        audio_file.add_tags()
+                    old_album = str(audio_file.tags.get('TALB', ''))
+                    if 'TALB' in audio_file.tags:
+                        del audio_file.tags['TALB']
+                    audio_file.tags.add(TALB(encoding=3, text=album))
+                    changes.append(f"Album: '{old_album}' → '{album}'")
+            
+            if not changes:
+                return False  # No changes to make
+            
+            # Save changes
+            if not test_mode:
+                audio_file.save()
+                print(f"✓ Updated metadata: {file_path.name}")
+                for change in changes:
+                    print(f"  {change}")
+            else:
+                print(f"[TEST] Would update metadata: {file_path.name}")
+                for change in changes:
+                    print(f"  {change}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error writing metadata to {file_path}: {e}")
+            return False
 
     def write_genre_tags(self, file_path: Path, new_genres: List[str], 
                         test_mode: bool = True, preserve_existing: bool = True) -> bool:

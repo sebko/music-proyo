@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
-from album_matcher import AlbumMatcher
+from album_scanner import AlbumScanner
 from hybrid_genre_fetcher import HybridGenreFetcher
 from fuzzywuzzy import fuzz
 
@@ -21,7 +21,7 @@ class AlbumMatchViewer:
     
     def __init__(self, music_path: str = "/Volumes/T7/Albums"):
         self.music_path = music_path
-        self.album_matcher = AlbumMatcher(music_path)
+        self.album_matcher = AlbumScanner(music_path)
         self.hybrid_fetcher = HybridGenreFetcher()
         self.failed_albums = []
         self.albums_with_matches = []

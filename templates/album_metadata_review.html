@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+
+{% block title %}Review Metadata: {{ album.artist }} - {{ album.album }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/albums?filter_matched=review">Needs Review</a></li>
+                <li class="breadcrumb-item active">{{ album.artist }} - {{ album.album }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Metadata Review</strong> - The system has found potential improvements to this album's metadata.
+            Please review the changes below and choose whether to approve or reject them.
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Current Album Info -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-secondary">
+                <h5><i class="fas fa-database"></i> Current Metadata</h5>
+            </div>
+            <div class="card-body text-center">
+                <!-- Album Artwork -->
+                <div class="album-artwork-large mb-3">
+                    <img src="/api/artwork/{{ album.id }}" alt="Album artwork" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                         class="artwork-image" style="max-width: 200px; border-radius: 8px;">
+                    <div class="artwork-fallback" style="display: none; align-items: center; justify-content: center; width: 200px; height: 200px; background: #1a1a1a; border-radius: 8px;">
+                        <i class="fas fa-record-vinyl fa-3x text-muted"></i>
+                    </div>
+                </div>
+                
+                <div class="metadata-field">
+                    <label class="field-label">Artist:</label>
+                    <div class="field-value current">{{ album.artist }}</div>
+                </div>
+                
+                <div class="metadata-field">
+                    <label class="field-label">Album:</label>
+                    <div class="field-value current">{{ album.album }}</div>
+                </div>
+                
+                <div class="metadata-field">
+                    <label class="field-label">Year:</label>
+                    <div class="field-value current">{{ album.year or 'Unknown' }}</div>
+                </div>
+                
+                <div class="metadata-field">
+                    <label class="field-label">Tracks:</label>
+                    <div class="field-value current">{{ album.track_count }}</div>
+                </div>
+                
+                {% if album.genre %}
+                <div class="metadata-field">
+                    <label class="field-label">Current Genres:</label>
+                    <div class="genre-tags">
+                        {% for genre in album.genre.split(';') %}
+                        <span class="badge bg-secondary me-1 mb-1">{{ genre.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Proposed Changes -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-primary">
+                <h5><i class="fas fa-magic"></i> Proposed Changes 
+                    {% if proposed_changes and proposed_changes.confidence %}
+                    <span class="badge bg-light text-dark ms-2">{{ "%.1f"|format(proposed_changes.confidence) }}% confidence</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                {% if proposed_changes %}
+                    <!-- Source Information -->
+                    <div class="source-info mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-spotify text-success"></i> Matched from Spotify API
+                        </small>
+                    </div>
+                    
+                    {% if proposed_changes.corrected_artist %}
+                    <div class="metadata-field">
+                        <label class="field-label">Artist:</label>
+                        {% if proposed_changes.corrected_artist != album.artist %}
+                        <div class="field-value proposed">
+                            {{ proposed_changes.corrected_artist }}
+                            <i class="fas fa-arrow-right text-primary mx-2"></i>
+                            <span class="change-indicator">Changed</span>
+                        </div>
+                        {% else %}
+                        <div class="field-value unchanged">{{ album.artist }} <small class="text-muted">(no change)</small></div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="metadata-field">
+                        <label class="field-label">Artist:</label>
+                        <div class="field-value unchanged">{{ album.artist }} <small class="text-muted">(no change)</small></div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proposed_changes.corrected_album %}
+                    <div class="metadata-field">
+                        <label class="field-label">Album:</label>
+                        {% if proposed_changes.corrected_album != album.album %}
+                        <div class="field-value proposed">
+                            {{ proposed_changes.corrected_album }}
+                            <i class="fas fa-arrow-right text-primary mx-2"></i>
+                            <span class="change-indicator">Changed</span>
+                        </div>
+                        {% else %}
+                        <div class="field-value unchanged">{{ album.album }} <small class="text-muted">(no change)</small></div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="metadata-field">
+                        <label class="field-label">Album:</label>
+                        <div class="field-value unchanged">{{ album.album }} <small class="text-muted">(no change)</small></div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proposed_changes.suggested_genres %}
+                    <div class="metadata-field">
+                        <label class="field-label">Proposed Genres:</label>
+                        <div class="field-value proposed">
+                            <div class="genre-tags">
+                                {% for genre in proposed_changes.suggested_genres %}
+                                <span class="badge bg-success me-1 mb-1">{{ genre }}</span>
+                                {% endfor %}
+                            </div>
+                            <i class="fas fa-arrow-right text-primary mx-2"></i>
+                            <span class="change-indicator">New Genres</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Spotify Match Details -->
+                    {% if proposed_changes.spotify_match %}
+                    <div class="match-details mt-4">
+                        <h6>Match Details:</h6>
+                        <div class="match-info">
+                            {% if proposed_changes.spotify_match.external_urls %}
+                            <a href="{{ proposed_changes.spotify_match.external_urls.spotify }}" target="_blank" class="btn btn-sm btn-outline-success mb-2">
+                                <i class="fab fa-spotify"></i> View on Spotify
+                            </a>
+                            {% endif %}
+                            
+                            {% if proposed_changes.spotify_match.artists %}
+                            <div class="small text-muted">
+                                Artists: {{ proposed_changes.spotify_match.artists|join(', ') }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if proposed_changes.spotify_match.release_date %}
+                            <div class="small text-muted">
+                                Release Date: {{ proposed_changes.spotify_match.release_date }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No proposed changes found for this album.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+{% if proposed_changes and (proposed_changes.corrected_artist or proposed_changes.corrected_album or proposed_changes.has_genre_changes) %}
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <div class="action-buttons">
+            <button type="button" class="btn btn-success btn-lg me-3" id="approveBtn" onclick="approveChanges()">
+                <i class="fas fa-check"></i> Approve Changes
+            </button>
+            <button type="button" class="btn btn-danger btn-lg" id="rejectBtn" onclick="rejectChanges()">
+                <i class="fas fa-times"></i> Reject Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Changes Summary -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-list"></i> Changes Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="changes-list">
+                    {% if proposed_changes.corrected_artist and proposed_changes.corrected_artist != album.artist %}
+                    <div class="change-item">
+                        <div class="change-field">Artist:</div>
+                        <div class="change-from">{{ album.artist }}</div>
+                        <i class="fas fa-arrow-right text-primary mx-2"></i>
+                        <div class="change-to">{{ proposed_changes.corrected_artist }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proposed_changes.corrected_album and proposed_changes.corrected_album != album.album %}
+                    <div class="change-item">
+                        <div class="change-field">Album:</div>
+                        <div class="change-from">{{ album.album }}</div>
+                        <i class="fas fa-arrow-right text-primary mx-2"></i>
+                        <div class="change-to">{{ proposed_changes.corrected_album }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proposed_changes.has_genre_changes %}
+                    <div class="change-item">
+                        <div class="change-field">Genres:</div>
+                        <div class="change-from">{{ album.genre or 'No genres' }}</div>
+                        <i class="fas fa-arrow-right text-primary mx-2"></i>
+                        <div class="change-to">{{ proposed_changes.suggested_genres|join('; ') }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not (proposed_changes.corrected_artist and proposed_changes.corrected_artist != album.artist) and not (proposed_changes.corrected_album and proposed_changes.corrected_album != album.album) and not proposed_changes.has_genre_changes %}
+                    <div class="text-center py-3">
+                        <small class="text-muted">No significant changes detected</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+.album-artwork-large {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.metadata-field {
+    margin-bottom: 15px;
+    text-align: left;
+    color: #e0e0e0;  /* Ensure field text is light */
+}
+
+.field-label {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #888;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.field-value {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 1.1em;
+    color: #e0e0e0 !important;  /* Force light text color */
+}
+
+.field-value.current {
+    background: #2c2c2c;
+    border: 2px solid #444;
+    color: #ffffff !important;  /* Force white text for maximum contrast */
+}
+
+.field-value.proposed {
+    background: #1a4b3a;
+    border: 2px solid #28a745;
+    color: #d4edda;
+}
+
+.field-value.unchanged {
+    background: #2c2c2c;
+    border: 2px solid #444;
+    color: #888;
+}
+
+.change-indicator {
+    font-size: 0.8em;
+    background: #28a745;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+}
+
+.source-info {
+    padding: 8px;
+    background: #1a1a1a;
+    border-radius: 6px;
+}
+
+.match-details {
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 8px;
+}
+
+.match-info {
+    font-size: 0.9em;
+}
+
+.action-buttons {
+    padding: 20px;
+}
+
+.changes-list {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.change-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: #2c2c2c;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.change-field {
+    font-weight: bold;
+    min-width: 80px;
+    color: #888;
+}
+
+.change-from {
+    background: #4a1a1a;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #ffcccc;
+    border: 1px solid #666;
+}
+
+.change-to {
+    background: #1a4a1a;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #ccffcc;
+    border: 1px solid #666;
+}
+
+.genre-tags .badge {
+    font-size: 0.8em;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+}
+
+.alert-success, .alert-danger {
+    display: none;
+}
+</style>
+
+<script>
+function approveChanges() {
+    const btn = document.getElementById('approveBtn');
+    const originalText = btn.innerHTML;
+    
+    if (!confirm('Are you sure you want to apply these metadata changes? This will update the album information.')) {
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Applying Changes...';
+    
+    fetch(`/api/approve-metadata/{{ album.id }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-check"></i> <strong>Success!</strong> Metadata changes have been approved and applied.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+            
+            // Redirect after delay
+            setTimeout(() => {
+                window.location.href = '/albums?filter_matched=review';
+            }, 2000);
+        } else {
+            alert('Error applying changes: ' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+function rejectChanges() {
+    const btn = document.getElementById('rejectBtn');
+    const originalText = btn.innerHTML;
+    
+    if (!confirm('Are you sure you want to reject these metadata changes? This will mark them as reviewed.')) {
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
+    
+    fetch(`/api/reject-metadata/{{ album.id }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-info alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-info-circle"></i> <strong>Changes Rejected</strong> The proposed metadata changes have been rejected.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+            
+            // Redirect after delay
+            setTimeout(() => {
+                window.location.href = '/albums?filter_matched=review';
+            }, 2000);
+        } else {
+            alert('Error rejecting changes: ' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+</script>
+{% endblock %}

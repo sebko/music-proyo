@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from hybrid_genre_fetcher import HybridGenreFetcher
-from album_matcher import AlbumMatcher
+from album_scanner import AlbumScanner
 
 class LibraryMatchScanner:
     """Scan entire library to analyze match rates and potential improvements"""
@@ -18,15 +18,15 @@ class LibraryMatchScanner:
     def __init__(self, music_path: str):
         self.music_path = music_path
         self.hybrid_fetcher = HybridGenreFetcher()
-        self.album_matcher = AlbumMatcher(music_path)
+        self.album_scanner = AlbumScanner(music_path)
         
         print("🔍 Scanning music library...")
-        self.album_matcher.scan_filesystem()
-        print(f"Found {len(self.album_matcher.albums)} albums to analyze")
+        self.album_scanner.scan_filesystem()
+        print(f"Found {len(self.album_scanner.albums)} albums to analyze")
         
         # Results tracking
         self.results = {
-            'total_albums': len(self.album_matcher.albums),
+            'total_albums': len(self.album_scanner.albums),
             'processed': 0,
             'matched': 0,
             'no_match': 0,
@@ -49,10 +49,10 @@ class LibraryMatchScanner:
         
         if sample_size:
             print(f"📦 Scanning Sample: {sample_size} albums")
-            album_items = list(self.album_matcher.albums.items())[:sample_size]
+            album_items = list(self.album_scanner.albums.items())[:sample_size]
         else:
             print(f"📦 Scanning Full Library: {self.results['total_albums']} albums")
-            album_items = list(self.album_matcher.albums.items())
+            album_items = list(self.album_scanner.albums.items())
         
         print()
         

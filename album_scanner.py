@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Album Matcher - Phase 1 of Music Library Genre Tagger
-Extract unique albums from filesystem and test matching strategies
+Album Scanner - Filesystem Scanning and Metadata Extraction
+Extract unique albums from filesystem and prepare for matching operations
 """
 
 import xml.etree.ElementTree as ET
@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from mutagen import File as MutagenFile
 
-class AlbumMatcher:
+class AlbumScanner:
     def __init__(self, music_path: str):
         self.music_path = music_path
         self.albums = {}  # album_key -> album_info
@@ -63,6 +63,7 @@ class AlbumMatcher:
             track['Album'] = self._get_tag_value(tags, ['TALB', 'ALBUM', 'Album'])
             track['Album Artist'] = self._get_tag_value(tags, ['TPE2', 'ALBUMARTIST', 'AlbumArtist'])
             track['Genre'] = self._get_tag_value(tags, ['TCON', 'GENRE', 'Genre'])
+            track['Compilation'] = self._get_tag_value(tags, ['TCMP', 'COMPILATION', 'Compilation'])
             
             # If no album artist, fall back to artist
             if not track['Album Artist'] and track['Artist']:
@@ -90,23 +91,36 @@ class AlbumMatcher:
             'Artist' in track or 'Album Artist' in track
         )
     
+    def _is_compilation(self, track: Dict) -> bool:
+        """Check if track is part of a compilation album"""
+        compilation = track.get('Compilation', '')
+        return compilation.lower() in ['1', 'true', 'yes'] or compilation == '1'
+    
     def _process_album(self, track: Dict) -> None:
         """Process track and extract album information"""
         album = track['Album']
         artist = track.get('Album Artist', track.get('Artist', ''))
+        is_compilation = self._is_compilation(track)
         
         if not album or not artist:
             return
         
         # Create album key for deduplication
-        album_key = f"{artist}|{album}"
+        if is_compilation:
+            # For compilations, use album name only to consolidate all tracks
+            album_key = f"Various Artists|{album}"
+            display_artist = "Various Artists"
+        else:
+            album_key = f"{artist}|{album}"
+            display_artist = artist
         
         if album_key not in self.albums:
             self.albums[album_key] = {
-                'artist': artist,
+                'artist': display_artist,
                 'album': album,
                 'tracks': [],
-                'genres': set()
+                'genres': set(),
+                'is_compilation': is_compilation
             }
         
         # Add track info
@@ -285,7 +299,7 @@ class AlbumMatcher:
                 print(f"             | Album normalization: '{orig_album}' -> '{norm_album}'")
 
 if __name__ == "__main__":
-    matcher = AlbumMatcher("/Volumes/T7/Albums")
-    matcher.scan_filesystem()
-    matcher.print_album_report()
-    matcher.print_matching_strategies_report()
+    scanner = AlbumScanner("/Volumes/T7/Albums")
+    scanner.scan_filesystem()
+    scanner.print_album_report()
+    scanner.print_matching_strategies_report()

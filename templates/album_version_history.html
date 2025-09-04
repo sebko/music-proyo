@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Version History: {{ album.artist }} - {{ album.album }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/albums">Albums</a></li>
+                <li class="breadcrumb-item"><a href="/albums/{{ album.id }}">{{ album.artist }} - {{ album.album }}</a></li>
+                <li class="breadcrumb-item active">Version History</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-history"></i> Version History</h2>
+        <p class="text-muted">{{ album.artist }} - {{ album.album }}</p>
+    </div>
+</div>
+
+<!-- Current State Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary">
+                <h5 class="mb-0">
+                    <i class="fas fa-check-circle"></i> Current State
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="text-muted">Artist:</label>
+                        <p class="font-weight-bold">{{ album.artist }}</p>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="text-muted">Album:</label>
+                        <p class="font-weight-bold">{{ album.album }}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="text-muted">Year:</label>
+                        <p class="font-weight-bold">{{ album.year or 'Unknown' }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="text-muted">Genre:</label>
+                        <p class="font-weight-bold">{{ album.genre or 'Not set' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Version History Timeline -->
+<div class="row">
+    <div class="col-12">
+        {% if versions %}
+        <div class="timeline">
+            {% for version in versions %}
+            <div class="timeline-item {% if version.is_current %}current{% endif %}">
+                <div class="timeline-marker">
+                    {% if version.is_current %}
+                    <i class="fas fa-check-circle text-success"></i>
+                    {% else %}
+                    <i class="fas fa-circle"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="timeline-content">
+                    <div class="card {% if version.is_current %}border-success{% endif %}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">
+                                    Version {{ version.version_number }}
+                                    {% if version.is_current %}
+                                    <span class="badge bg-success ms-2">Current</span>
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">
+                                    {{ version.created_at }} 
+                                    {% if version.changed_by == 'api_match' %}
+                                    <span class="badge bg-info ms-1">API Match</span>
+                                    {% elif version.changed_by == 'user_revert' %}
+                                    <span class="badge bg-warning ms-1">Reverted</span>
+                                    {% elif version.changed_by == 'manual_edit' %}
+                                    <span class="badge bg-secondary ms-1">Manual Edit</span>
+                                    {% elif version.changed_by == 'preserved' %}
+                                    <span class="badge bg-dark ms-1">Preserved</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% if not version.is_current %}
+                            <button class="btn btn-sm btn-outline-primary revert-btn" 
+                                    data-version-id="{{ version.id }}"
+                                    data-version-number="{{ version.version_number }}"
+                                    data-album-id="{{ album.id }}">
+                                <i class="fas fa-undo"></i> Revert
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="row version-details">
+                                <div class="col-md-3">
+                                    <label class="text-muted small">Artist:</label>
+                                    <p class="mb-1">{{ version.artist }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="text-muted small">Album:</label>
+                                    <p class="mb-1">{{ version.album }}</p>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="text-muted small">Year:</label>
+                                    <p class="mb-1">{{ version.year or 'Unknown' }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="text-muted small">Genre:</label>
+                                    <p class="mb-1">{{ version.genre or 'Not set' }}</p>
+                                </div>
+                            </div>
+                            {% if version.change_reason %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> {{ version.change_reason }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Show changes from previous version -->
+                            {% if loop.index < versions|length %}
+                            {% set prev_version = versions[loop.index] %}
+                            <div class="changes-from-previous mt-3">
+                                <h6 class="text-muted small">Changes from previous:</h6>
+                                <div class="changes-list">
+                                    {% if version.artist != prev_version.artist %}
+                                    <div class="change-item">
+                                        <span class="change-field">Artist:</span>
+                                        <span class="old-value">{{ prev_version.artist }}</span>
+                                        <i class="fas fa-arrow-right mx-2"></i>
+                                        <span class="new-value">{{ version.artist }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if version.album != prev_version.album %}
+                                    <div class="change-item">
+                                        <span class="change-field">Album:</span>
+                                        <span class="old-value">{{ prev_version.album }}</span>
+                                        <i class="fas fa-arrow-right mx-2"></i>
+                                        <span class="new-value">{{ version.album }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if version.year != prev_version.year %}
+                                    <div class="change-item">
+                                        <span class="change-field">Year:</span>
+                                        <span class="old-value">{{ prev_version.year or 'Unknown' }}</span>
+                                        <i class="fas fa-arrow-right mx-2"></i>
+                                        <span class="new-value">{{ version.year or 'Unknown' }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if version.genre != prev_version.genre %}
+                                    <div class="change-item">
+                                        <span class="change-field">Genre:</span>
+                                        <span class="old-value">{{ prev_version.genre or 'Not set' }}</span>
+                                        <i class="fas fa-arrow-right mx-2"></i>
+                                        <span class="new-value">{{ version.genre or 'Not set' }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No version history available yet. Version tracking starts when metadata changes are approved.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 40px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #444;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-item.current .timeline-marker {
+    color: #28a745;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    border-radius: 50%;
+    color: #666;
+}
+
+.timeline-content {
+    padding-left: 10px;
+}
+
+.version-details p {
+    font-size: 0.95em;
+    margin-bottom: 0;
+}
+
+.changes-from-previous {
+    border-top: 1px solid #333;
+    padding-top: 10px;
+}
+
+.change-item {
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 0.9em;
+}
+
+.change-field {
+    font-weight: bold;
+    min-width: 80px;
+    color: #888;
+}
+
+.old-value {
+    background: #4a1a1a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ffcccc;
+}
+
+.new-value {
+    background: #1a4a1a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #ccffcc;
+}
+
+.revert-btn:hover {
+    background: #007bff;
+    color: white;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle revert buttons
+    document.querySelectorAll('.revert-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const versionId = this.dataset.versionId;
+            const versionNumber = this.dataset.versionNumber;
+            const albumId = this.dataset.albumId;
+            
+            if (!confirm(`Are you sure you want to revert to version ${versionNumber}? This will create a new version with the selected metadata.`)) {
+                return;
+            }
+            
+            const originalText = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reverting...';
+            
+            fetch(`/api/revert-album/${albumId}/${versionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <i class="fas fa-check"></i> <strong>Success!</strong> ${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+                    
+                    // Reload page to show updated history
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    alert('Error reverting version: ' + data.error);
+                    this.disabled = false;
+                    this.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+                this.disabled = false;
+                this.innerHTML = originalText;
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

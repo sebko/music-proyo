@@ -15,7 +15,7 @@ import logging
 import statistics
 
 from genre_standardizer import GenreStandardizer
-from album_matcher import AlbumMatcher
+from album_scanner import AlbumScanner
 
 @dataclass
 class QualityIssue:
@@ -674,7 +674,7 @@ if __name__ == "__main__":
     print("=" * 50)
     
     # Initialize with album data
-    matcher = AlbumMatcher("/Volumes/T7/Albums")
+    matcher = AlbumScanner("/Volumes/T7/Albums")
     matcher.scan_filesystem()
     
     qc_system = QualityControlSystem("/Volumes/T7/Albums")

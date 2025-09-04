@@ -1,0 +1,24 @@
+# Music Library Genre Tagger - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core web framework
+flask>=2.0.0
+
+# System process management  
+psutil>=5.8.0
+
+# HTTP requests for API calls
+requests>=2.25.0
+
+# Audio file metadata handling
+mutagen>=1.45.0
+
+# Fuzzy string matching for album/artist comparison
+fuzzywuzzy>=0.18.0
+
+# Music metadata APIs
+musicbrainzngs>=0.7.1
+spotipy>=2.20.0
+
+# Optional: For better fuzzy matching performance
+python-Levenshtein>=0.12.0

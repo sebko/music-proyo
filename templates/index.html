@@ -1,21 +1,84 @@
 {% extends "base.html" %}
 
-{% block title %}Genre Diff Viewer - Dashboard{% endblock %}
+{% block title %}Music Library Dashboard{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
         <h1>
-            <i class="fas fa-chart-line"></i> Genre Modification Dashboard
+            <i class="fas fa-tachometer-alt"></i> Music Library Dashboard
         </h1>
-        <p class="lead">Visualize genre changes from your batch processing jobs</p>
+        <p class="lead">Monitor live progress and manage your music library</p>
     </div>
 </div>
+
+{% if live_progress.has_active_jobs %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h4><i class="fas fa-spinner fa-spin"></i> Live Progress - {{ live_progress.total_active_jobs }} Active Job(s)</h4>
+            </div>
+            <div class="card-body">
+                {% for job in live_progress.running_jobs %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">{{ job.name }}</h5>
+                        <span class="badge bg-primary">{{ "%.1f"|format(job.progress_percent) }}%</span>
+                    </div>
+                    
+                    <div class="progress mb-2" style="height: 25px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: {{ job.progress_percent }}%"
+                             aria-valuenow="{{ job.progress_percent }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            {{ job.processed }}/{{ job.total_albums }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        {% if job.latest_album %}
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="fas fa-music"></i> Currently: {{ job.latest_album.artist }} - {{ job.latest_album.album }}
+                            </small>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6 text-end">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> 
+                                {% if job.processing_rate > 0 %}
+                                    {{ job.processing_rate }} albums/5min
+                                    {% if job.eta_minutes %}
+                                        | ETA: {{ job.eta_minutes }}min
+                                    {% endif %}
+                                {% else %}
+                                    Starting up...
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <span class="badge bg-success me-1">{{ job.successful }} Success</span>
+                        <span class="badge bg-danger me-1">{{ job.failed }} Failed</span>
+                        <span class="badge bg-warning me-1">{{ job.needs_review }} Review</span>
+                        <span class="badge bg-secondary">{{ job.skipped }} Skipped</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% if jobs %}
 <div class="row">
     <div class="col-12">
-        <h2>Batch Jobs</h2>
+        <h2>{% if live_progress.has_active_jobs %}Recent {% endif %}Batch Jobs</h2>
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
@@ -140,4 +203,35 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh live progress every 10 seconds if there are active jobs
+{% if live_progress.has_active_jobs %}
+setInterval(function() {
+    fetch('/api/live-progress')
+        .then(response => response.json())
+        .then(data => {
+            if (data.has_active_jobs) {
+                // Reload the page to show updated progress
+                // In a more sophisticated implementation, we'd update just the progress section
+                location.reload();
+            }
+        })
+        .catch(error => console.log('Progress update failed:', error));
+}, 10000); // 10 seconds
+
+// Add a small indicator to show auto-refresh is active
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.card-header h4');
+    if (header) {
+        const refreshIndicator = document.createElement('small');
+        refreshIndicator.className = 'ms-2 text-light';
+        refreshIndicator.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Auto-refresh: 10s';
+        header.appendChild(refreshIndicator);
+    }
+});
+{% endif %}
+</script>
 {% endblock %}

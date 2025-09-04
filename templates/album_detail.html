@@ -1,0 +1,377 @@
+{% extends "base.html" %} {% block title %}{{ album.artist }} - {{ album.album
+}}{% endblock %} {% block content %}
+<div class="row">
+  <div class="col-12">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="/albums">Albums</a></li>
+        <li class="breadcrumb-item active">
+          {{ album.artist }} - {{ album.album }}
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Album Info -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body text-center">
+        <!-- Album Artwork Placeholder -->
+        <div class="album-artwork-large mb-3">
+          <i class="fas fa-record-vinyl fa-5x text-muted"></i>
+        </div>
+
+        <h2 class="h4">{{ album.album }}</h2>
+        <p class="text-muted mb-3">by {{ album.artist }}</p>
+
+        <!-- Match Status -->
+        <div class="mb-3">
+          <span class="badge bg-{{ album.match_status.class }} p-2">
+            {% if album.match_status.type == 'never' %}
+            <i class="fas fa-times"></i>
+            {% elif album.match_status.type == 'matched' %}
+            <i class="fas fa-check"></i>
+            {% else %}
+            <i class="fas fa-exclamation"></i>
+            {% endif %} {{ album.match_status.text }}
+          </span>
+        </div>
+
+        <!-- Album Stats -->
+        <div class="album-stats">
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="stat-value">{{ album.track_count }}</div>
+              <div class="stat-label">Tracks</div>
+            </div>
+            <div class="col-4">
+              <div class="stat-value">
+                {% if album.total_duration %} {{ (album.total_duration //
+                60)|int }}:{{ "%02d"|format((album.total_duration % 60)|int) }}
+                {% else %} --:-- {% endif %}
+              </div>
+              <div class="stat-label">Duration</div>
+            </div>
+            <div class="col-4">
+              <div class="stat-value">{{ album.year or '----' }}</div>
+              <div class="stat-label">Year</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Genres -->
+        {% if album.genre %}
+        <div class="mt-3">
+          <h6>Current Genres</h6>
+          <div class="genre-tags">
+            {% for genre in album.genre.split(';') %}
+            <span class="badge bg-secondary me-1 mb-1"
+              >{{ genre.strip() }}</span
+            >
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Metadata Summary Card -->
+    <div class="card mt-3">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5><i class="fas fa-info-circle"></i> Metadata Summary</h5>
+        <div>
+          <a
+            href="/albums/{{ album.id }}/history"
+            class="btn btn-sm btn-outline-secondary me-1"
+          >
+            <i class="fas fa-history"></i> Version History
+          </a>
+          <button class="btn btn-sm btn-outline-primary" id="rescanAlbumButton">
+            <i class="fas fa-sync"></i> Rescan Album
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="metadata-summary">
+          <div class="row mb-2">
+            <div class="col-6"><strong>Album Key:</strong></div>
+            <div class="col-6"><code>{{ album.album_key }}</code></div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-6"><strong>Last Scanned:</strong></div>
+            <div class="col-6">
+              {{ album.last_scanned[:10] if album.last_scanned else 'Never' }}
+            </div>
+          </div>
+          {% if album.last_matched %}
+          <div class="row mb-2">
+            <div class="col-6"><strong>Last Matched:</strong></div>
+            <div class="col-6">{{ album.last_matched[:10] }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-6"><strong>Confidence:</strong></div>
+            <div class="col-6">
+              {{ "%.1f"|format(album.match_confidence) }}%
+            </div>
+          </div>
+          {% endif %}
+          <div class="row">
+            <div class="col-6"><strong>File Path:</strong></div>
+            <div class="col-6">
+              <small class="text-muted">{{ album.file_path }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Track List -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h5><i class="fas fa-list"></i> Track List</h5>
+      </div>
+      <div class="card-body">
+        {% if tracks %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th width="50">#</th>
+                <th>Title</th>
+                <th>Artist</th>
+                <th width="80">Duration</th>
+                <th width="80">Format</th>
+                <th width="40"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for track in tracks %}
+              <tr>
+                <td>{{ track.track_number or loop.index }}</td>
+                <td>
+                  <strong>{{ track.title or 'Unknown Title' }}</strong>
+                </td>
+                <td class="text-muted">{{ track.artist or album.artist }}</td>
+                <td>
+                  {% if track.duration %} {{ (track.duration // 60)|int }}:{{
+                  "%02d"|format((track.duration % 60)|int) }} {% else %} --:--
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge bg-info"
+                    >{{ track.file_format.upper() }}</span
+                  >
+                </td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    onclick="showTrackMetadata({{ loop.index0 }})"
+                    title="View Raw Metadata"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-music fa-3x text-muted mb-3"></i>
+          <p class="text-muted">No tracks found for this album.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Raw Metadata Section -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5><i class="fas fa-code"></i> Raw Metadata</h5>
+          <button
+            class="btn btn-sm btn-outline-secondary"
+            onclick="toggleMetadata()"
+          >
+            <i class="fas fa-eye" id="metadataToggleIcon"></i> Show/Hide
+          </button>
+        </div>
+      </div>
+      <div class="card-body" id="metadataSection" style="display: none">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Album Metadata</h6>
+            <pre
+              class="metadata-json"
+            ><code>{{ album.raw_metadata | tojson(indent=2) }}</code></pre>
+          </div>
+          <div class="col-md-6" id="trackMetadataSection">
+            <h6>Track Metadata <span id="trackMetadataTitle"></span></h6>
+            <pre
+              class="metadata-json"
+            ><code id="trackMetadataContent">Select a track to view its metadata</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<style>
+  .album-artwork-large {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 40px;
+  }
+
+  .stat-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #000;
+  }
+
+  .stat-label {
+    font-size: 0.8em;
+    color: #888;
+    text-transform: uppercase;
+  }
+
+  .metadata-summary {
+    font-size: 0.9em;
+  }
+
+  .metadata-json {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 15px;
+    font-size: 0.8em;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .metadata-json code {
+    color: #e0e0e0;
+  }
+
+  .genre-tags .badge {
+    font-size: 0.8em;
+  }
+
+  /* Table styling for dark theme */
+  .table th {
+    border-color: #444;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .table td {
+    border-color: #444;
+    color: #ccc;
+  }
+
+  .table tbody tr:hover {
+    background-color: #2c2c2c;
+  }
+</style>
+
+<script>
+  // Track metadata for viewing
+  const trackMetadata = {{ tracks | tojson }};
+
+  function toggleMetadata() {
+      const section = document.getElementById('metadataSection');
+      const icon = document.getElementById('metadataToggleIcon');
+
+      if (section.style.display === 'none') {
+          section.style.display = 'block';
+          icon.className = 'fas fa-eye-slash';
+      } else {
+          section.style.display = 'none';
+          icon.className = 'fas fa-eye';
+      }
+  }
+
+  function showTrackMetadata(index) {
+      const track = trackMetadata[index];
+      const titleElement = document.getElementById('trackMetadataTitle');
+      const contentElement = document.getElementById('trackMetadataContent');
+
+      titleElement.textContent = `- ${track.title || 'Unknown'}`;
+      contentElement.textContent = JSON.stringify(track.raw_metadata, null, 2);
+
+      // Show metadata section if hidden
+      const section = document.getElementById('metadataSection');
+      if (section.style.display === 'none') {
+          toggleMetadata();
+      }
+
+      // Scroll to track metadata
+      document.getElementById('trackMetadataSection').scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest'
+      });
+  }
+
+  // Rescan album functionality
+  document.getElementById('rescanAlbumButton').addEventListener('click', function(e) {
+      e.preventDefault();
+
+      const button = this;
+      const originalText = button.innerHTML;
+
+      if (!confirm('This will rescan the album and update metadata including artwork. Continue?')) {
+          return;
+      }
+
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rescanning...';
+
+      fetch(`/api/rescan-album/{{ album.id }}`)
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Show success message and reload page to show updated data
+                  alert(`Album rescan complete!\n\nMetadata updated: ${data.metadata_updated ? 'Yes' : 'No'}\nArtwork ${data.artwork_extracted ? 'extracted' : 'not found'}`);
+                  window.location.reload();
+              } else {
+                  alert('Rescan failed: ' + data.error);
+              }
+          })
+          .catch(error => {
+              alert('Rescan failed: ' + error.message);
+          })
+          .finally(() => {
+              button.disabled = false;
+              button.innerHTML = originalText;
+          });
+  });
+
+  // Syntax highlighting for JSON (basic)
+  document.addEventListener('DOMContentLoaded', function() {
+      const codeBlocks = document.querySelectorAll('.metadata-json code');
+      codeBlocks.forEach(block => {
+          let html = block.innerHTML;
+          // Basic JSON syntax highlighting
+          html = html.replace(/"([^"]+)":/g, '<span style="color: #66d9ef">"$1"</span>:');
+          html = html.replace(/: "([^"]+)"/g, ': <span style="color: #a6e22e">"$1"</span>');
+          html = html.replace(/: ([0-9]+)/g, ': <span style="color: #ae81ff">$1</span>');
+          html = html.replace(/: (true|false|null)/g, ': <span style="color: #fd971f">$1</span>');
+          block.innerHTML = html;
+      });
+  });
+</script>
+{% endblock %}

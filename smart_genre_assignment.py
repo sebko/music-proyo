@@ -505,13 +505,13 @@ class SmartGenreAssignment:
 
 if __name__ == "__main__":
     # Test smart genre assignment
-    from album_matcher import AlbumMatcher
+    from album_scanner import AlbumScanner
     
     print("Testing Smart Genre Assignment System")
     print("=" * 50)
     
     # Initialize with album data
-    matcher = AlbumMatcher("/Volumes/T7/Albums")
+    matcher = AlbumScanner("/Volumes/T7/Albums")
     matcher.scan_filesystem()
     
     smart_assignment = SmartGenreAssignment("/Volumes/T7/Albums")
