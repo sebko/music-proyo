@@ -14,10 +14,9 @@ def main():
     
     music_scripts = [
         'music_dashboard.py',
-        'music_genre_tagger.py', 
+ 
         'batch_processor.py',
         'album_match_viewer.py',
-        'genre_diff_viewer.py'
     ]
     
     total_cleaned = 0

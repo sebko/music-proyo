@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from datetime import datetime
 
-from album_matcher import AlbumMatcher
+from album_scanner import AlbumScanner
 from fuzzywuzzy import fuzz
 
 app = Flask(__name__)

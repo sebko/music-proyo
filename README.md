@@ -32,52 +32,48 @@ Successfully implemented all recommended improvements for the genre cleaning tas
 ## 🚀 System Components
 
 ### Core Engine
-- **`album_matcher.py`** - Filesystem-based album discovery (replaces XML dependency)
+- **`album_scanner.py`** - Filesystem-based album discovery and metadata extraction
 - **`genre_standardizer.py`** - Comprehensive genre normalization with hierarchy
-- **`enhanced_api_client.py`** - Multi-API integration with caching and rate limiting
+- **`matcher.py`** - Top-level matching orchestrator with multi-source API integration
+- **`hybrid_genre_fetcher.py`** - Multi-source API aggregation with confidence scoring
 - **`tag_writer.py`** - Safe ID3 tag writing with backup system
 
 ### Processing Systems  
-- **`batch_processor.py`** - Confidence-based batch operations with SQLite tracking
+- **`batch_processor.py`** - **INTERNAL USE ONLY** - Batch processing engine called by web interface
 - **`smart_genre_assignment.py`** - AI-powered genre suggestions from multiple sources
 - **`quality_control.py`** - Library consistency checking and validation
 
-### User Interfaces
-- **`music_genre_tagger.py`** - Command-line interface for all operations
-- **`web_interface.py`** - Flask web UI for manual review and bulk operations
+### User Interface
+- **`music_dashboard.py`** - **PRIMARY ENTRY POINT** - Complete web-based management interface
 
 ## 🛠 Usage
 
-### Command Line Interface
+### Primary Entry Point
 
 ```bash
-# Analyze your library
-python3 music_genre_tagger.py /Volumes/T7/Albums analyze --detailed --quality
+# Start the web-based music library management interface
+python3 music_dashboard.py
 
-# Process albums without genres (dry run)
-python3 music_genre_tagger.py /Volumes/T7/Albums batch --filter no_genres --dry-run
-
-# Process albums with confidence threshold (live mode)
-python3 music_genre_tagger.py /Volumes/T7/Albums batch --filter no_genres --confidence 90
-
-# Manual review interface
-python3 music_genre_tagger.py /Volumes/T7/Albums review --interactive
-
-# Start web interface
-python3 music_genre_tagger.py /Volumes/T7/Albums web
-
-# Run system tests
-python3 music_genre_tagger.py /Volumes/T7/Albums test
+# Access the interface at: http://localhost:5002
 ```
 
-### Web Interface
+### Web Interface Features
 
-Access the web UI at `http://localhost:5000` for:
-- Dashboard with library statistics
-- Album browsing with filtering
-- Manual genre review and editing
-- Batch job creation and monitoring
-- Quality control reports
+The web interface provides complete functionality:
+- **Dashboard** with library statistics and health metrics
+- **Library analysis** with detailed statistics
+- **Batch processing** with confidence thresholds and real-time monitoring  
+- **Manual review interface** for uncertain matches
+- **Album browsing** with filtering and search
+- **Quality control reports** and analytics
+- **Progress tracking** and job management
+
+### Optional Command-Line Tools
+
+```bash
+# Analyze library API match potential
+python3 library_match_scanner.py
+```
 
 ## 🔧 Configuration
 
@@ -154,12 +150,14 @@ The system is now **production-ready** with:
 
 ## 🔄 Recommended Workflow
 
-1. **Start with analysis**: `python3 music_genre_tagger.py /Volumes/T7/Albums analyze --detailed`
-2. **Test with dry run**: `python3 music_genre_tagger.py /Volumes/T7/Albums batch --dry-run`
-3. **Process high-confidence matches**: Batch process with 95% confidence
-4. **Manual review**: Handle medium-confidence suggestions via web interface
-5. **Quality check**: Run consistency analysis and fix issues
-6. **Iterate**: Gradually lower confidence threshold as needed
+1. **Start the web interface**: `python3 music_dashboard.py`
+2. **Access dashboard**: Open `http://localhost:5002` in your browser
+3. **Run library analysis**: Use the web interface to analyze your library
+4. **Test with dry run**: Start batch processing with dry-run mode
+5. **Process high-confidence matches**: Run batch processing with 95% confidence threshold
+6. **Manual review**: Handle medium-confidence suggestions via the built-in review interface
+7. **Quality check**: Review results and processing statistics through the dashboard
+8. **Iterate**: Gradually adjust confidence thresholds as needed
 
 ## Dependencies
 

@@ -2170,7 +2170,7 @@ if __name__ == '__main__':
         print("├── Checking for existing music system processes...")
     
     # Clean up all music system processes
-    music_scripts = ['music_dashboard.py', 'music_genre_tagger.py', 'batch_processor.py']
+    music_scripts = ['music_dashboard.py', 'batch_processor.py']
     
     for script in music_scripts:
         try:

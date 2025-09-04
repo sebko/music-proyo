@@ -278,7 +278,7 @@ class ScanStatusChecker:
             unmatched = registry['match_status'].get('unmatched', 0)
             if unmatched > 0:
                 print(f"  • {unmatched:,} albums haven't been matched with APIs yet")
-                print(f"    Run: python3 hybrid_batch_processor.py")
+                print(f"    Run: python3 music_dashboard.py")
         
         if batch and batch.get('needs_review', 0) > 0:
             print(f"  • {batch['needs_review']} albums need manual review")

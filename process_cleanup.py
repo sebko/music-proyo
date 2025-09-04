@@ -199,9 +199,6 @@ class ProcessCleanup:
         """Clean up all known music system processes"""
         scripts_to_cleanup = [
             'music_dashboard.py',
-            'genre_diff_viewer.py',
-            'web_interface.py',
-            'music_genre_tagger.py',
             'batch_processor.py'
         ]
         

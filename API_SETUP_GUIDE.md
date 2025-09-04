@@ -164,9 +164,12 @@ Copy this into your `api_config.json`:
 After setting up APIs:
 
 ```bash
-# Test the hybrid fetcher
+# Test the hybrid fetcher directly
 python3 hybrid_genre_fetcher.py
 
-# Test with your actual music library
-python3 music_genre_tagger.py /Volumes/T7/Albums batch --dry-run --limit 5 --confidence 80
+# Start the web interface and test with your music library
+python3 music_dashboard.py
+
+# Access the interface at: http://localhost:5002
+# Use the web interface to run batch processing with dry-run mode
 ```

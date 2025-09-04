@@ -128,7 +128,7 @@ def main():
             print(f"  {conf_emoji} {artist} - {album} ({confidence:.1f}%) - {time_ago}")
     
     print("\n" + "=" * 70)
-    print("💡 Tip: Run 'python3 music_genre_tagger.py /Volumes/T7/Albums batch' if processing has stopped")
+    print("💡 Tip: Run 'python3 music_dashboard.py' and use the web interface if processing has stopped")
     print()
 
 if __name__ == "__main__":

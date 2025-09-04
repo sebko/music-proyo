@@ -4,31 +4,24 @@
 
 ## 🚀 PRIMARY ENTRY POINT
 
-**Main Entry Point**: `batch_processor.py` (Consolidated CLI + Processing)
+**Main Entry Point**: `music_dashboard.py` (Web-Based Management Interface)
 
-This is the **SINGLE PRIMARY ENTRY POINT** that:
-1. **Scans your music library** and extracts metadata
-2. **Queries multiple music APIs** (Spotify, MusicBrainz, Deezer) 
-3. **Intelligently aggregates genres** with confidence-based weighting
-4. **Updates file tags** with standardized, high-quality genre information
-5. **Provides complete CLI interface** with analyze, batch, review, and test commands
+This is the **SINGLE PRIMARY ENTRY POINT** that provides:
+1. **Complete web-based management** of your music library
+2. **Interactive batch processing** with real-time monitoring  
+3. **Manual review interface** for uncertain matches
+4. **Library analysis and statistics** dashboard
+5. **All processing capabilities** through an intuitive web interface
 
 ### Quick Start:
 ```bash
-# PRIMARY ENTRY POINT - Consolidated batch processor with CLI
-python3 batch_processor.py /Volumes/T7/Albums batch --confidence 95
-
-# Analyze your library
-python3 batch_processor.py /Volumes/T7/Albums analyze --detailed
-
-# Process specific album
-python3 batch_processor.py /Volumes/T7/Albums batch --specific-album "100 gecs,10,000 gecs"
-
-# WEB INTERFACE - Start the music dashboard
+# PRIMARY ENTRY POINT - Web-based music library management
 python3 music_dashboard.py
+
+# Access the interface at: http://localhost:5002
 ```
 
-The system now uses a **single consolidated entry point** with integrated CLI and batch processing for maximum simplicity.
+The system uses a **web-first architecture** where all functionality is accessed through the intuitive dashboard interface. The `batch_processor.py` module handles internal processing and is called automatically by the web interface - it should not be used directly.
 
 ## System Overview
 
@@ -38,12 +31,12 @@ This is a **sophisticated, enterprise-grade music library management system** de
 
 ### Simplified Architecture 
 
-The system follows **clean separation of concerns** with two distinct entry points:
+The system follows **web-first architecture** with a single user entry point:
 
-1. **CLI + Processing**: `batch_processor.py` - Consolidated command-line interface and batch processing engine
-2. **Web Interface**: `music_dashboard.py` - Pure web-based management interface 
+1. **Web Interface**: `music_dashboard.py` - **PRIMARY ENTRY POINT** - Complete web-based management interface
+2. **Internal Processing**: `batch_processor.py` - **INTERNAL USE ONLY** - Called automatically by web interface
 
-Each component has a clear single responsibility with no functional overlap.
+The web interface provides all functionality through an intuitive dashboard, while batch processing happens internally.
 
 ### ⚠️ CRITICAL DEVELOPMENT RULE
 
@@ -76,24 +69,21 @@ Each component has a clear single responsibility with no functional overlap.
 
 ### Core Components
 
-1. **`batch_processor.py`** - **PRIMARY ENTRY POINT** - Consolidated CLI + batch processing engine
-2. **`album_scanner.py`** - Filesystem scanning and metadata extraction using mutagen
-3. **`matcher.py`** - Top-level matching orchestrator with multi-source API integration
-4. **`tag_writer.py`** - Safe ID3/FLAC tag writing with validation
+1. **`music_dashboard.py`** - **PRIMARY ENTRY POINT** - Web-based management interface and dashboard
+2. **`batch_processor.py`** - **INTERNAL USE ONLY** - Batch processing engine called by web interface
+3. **`album_scanner.py`** - Filesystem scanning and metadata extraction using mutagen
+4. **`matcher.py`** - Top-level matching orchestrator with multi-source API integration
+5. **`tag_writer.py`** - Safe ID3/FLAC tag writing with validation
 
 ### Multi-Source API Integration
 
-5. **`hybrid_genre_fetcher.py`** - Advanced multi-source aggregation with confidence scoring (internal)
+6. **`hybrid_genre_fetcher.py`** - Advanced multi-source aggregation with confidence scoring (internal)
 
 ### Intelligence & Quality Systems
 
 7. **`genre_standardizer.py`** - 200+ genre mapping rules with hierarchical relationships
 8. **`smart_genre_assignment.py`** - Contextual analysis and intelligent suggestions
 9. **`quality_control.py`** - Comprehensive validation and consistency checking
-
-### User Interfaces
-
-11. **`music_dashboard.py`** - Primary web interface and music library dashboard (port 5002)
 
 ### Configuration & Data Management
 
@@ -104,40 +94,26 @@ Each component has a clear single responsibility with no functional overlap.
 
 ## 🚀 Usage Guide
 
-### Primary Entry Points
+### Getting Started
 
-#### 1. Main Entry Point - Hybrid Batch Processor
+#### Start the Web Interface
 ```bash
-# PRIMARY ENTRY POINT - Enterprise-grade batch processing with multi-source APIs
-python3 batch_processor.py /Volumes/T7/Albums batch --confidence-threshold 95
+# PRIMARY ENTRY POINT - Start the music library dashboard
+python3 music_dashboard.py
 
-# This script:
-# - Automatically cleans up any rogue processes first
-# - Scans your entire music library for audio files
-# - Queries multiple music APIs (Spotify, MusicBrainz, Last.fm, Discogs, Deezer)
-# - Uses intelligent genre aggregation with confidence scoring
-# - Applies standardized genres with safety controls
-# - Tracks progress in SQLite database
-# - Provides detailed statistics and results
+# Access the interface at: http://localhost:5002
 ```
 
-#### 2. Advanced CLI Application (For API-based tagging)
+The web interface provides all functionality:
+- **Library analysis** with detailed statistics
+- **Batch processing** with confidence thresholds and real-time monitoring
+- **Manual review interface** for uncertain matches
+- **System testing** and validation
+- **Progress tracking** and job management
+
+#### Optional: Library Analysis Tool
 ```bash
-# Advanced command structure for API-based genre fetching
-python3 batch_processor.py [MUSIC_PATH] [COMMAND] [OPTIONS]
-
-# Available commands:
-analyze  - Analyze music library with detailed statistics
-batch    - Run batch processing with confidence thresholds
-review   - Manual review interface for uncertain matches
-test     - Run system tests and validation
-
-# Note: This uses APIs (Spotify, MusicBrainz, etc.) to fetch genres
-```
-
-#### 3. Library Analysis Tool
-```bash
-# Analyze your library to see potential API match rates
+# Command-line tool to analyze library API match potential
 python3 library_match_scanner.py
 
 # This helps you understand how many albums will get genre matches from APIs
@@ -145,47 +121,25 @@ python3 library_match_scanner.py
 
 ### Recommended Workflows
 
-#### 1. Initial Library Analysis
-```bash
-# Basic library analysis
-python3 batch_processor.py /Volumes/T7/Albums analyze
+#### 1. Initial Setup
+1. **Start the web interface**: `python3 music_dashboard.py`
+2. **Access dashboard**: Open `http://localhost:5002` in your browser
+3. **Configure settings**: Set your music library path and preferences
 
-# Comprehensive analysis with quality control
-python3 batch_processor.py /Volumes/T7/Albums analyze --detailed --quality
+#### 2. Library Analysis
+1. **Run analysis** through the web interface
+2. **Review statistics** and potential match rates  
+3. **Adjust confidence thresholds** based on your quality requirements
 
-# Performance testing with limited scope
-python3 batch_processor.py /Volumes/T7/Albums analyze --limit 50
-```
+#### 3. Batch Processing
+1. **Start batch job** with desired confidence threshold
+2. **Monitor progress** in real-time through the dashboard
+3. **Review uncertain matches** using the built-in review interface
 
-#### 2. Production Batch Processing
-```bash
-# Safety first - dry run testing
-python3 batch_processor.py /Volumes/T7/Albums batch --dry-run --sample-size 10
-
-# High-confidence automatic processing
-python3 batch_processor.py /Volumes/T7/Albums batch --confidence-threshold 95
-
-# Direct enterprise batch processor access
-python3 batch_processor.py
-```
-
-#### 3. Manual Review & Management
-```bash
-# Review uncertain matches
-python3 batch_processor.py /Volumes/T7/Albums review
-
-# Comprehensive web management interface
-python3 music_dashboard.py
-
-# Visual genre change comparison
-python3 genre_diff_viewer.py
-```
-
-#### 4. System Validation
-```bash
-# Complete system testing
-python3 batch_processor.py /Volumes/T7/Albums test
-```
+#### 4. Quality Control
+1. **Review results** and processing statistics
+2. **Check quality reports** for any issues
+3. **Validate changes** before applying to your library
 
 ## 🔧 Advanced Configuration
 
@@ -413,25 +367,14 @@ Expected performance metrics with 2,144+ albums:
 ### Quick Start Commands
 
 ```bash
-# PRIMARY ENTRY POINT - Production batch processing with multi-source APIs
-python3 batch_processor.py /Volumes/T7/Albums batch
-
-# Additional tools and options:
-
-# Analyze library match potential
-python3 library_match_scanner.py
-
-# Comprehensive library analysis
-python3 batch_processor.py /Volumes/T7/Albums analyze --detailed --quality
-
-# Safe batch processing test
-python3 batch_processor.py /Volumes/T7/Albums batch --dry-run --sample-size 10
-
-# Management interface
-python3 batch_processor.py /Volumes/T7/Albums web
-
-# Music library dashboard
+# PRIMARY ENTRY POINT - Web-based music library management
 python3 music_dashboard.py
+
+# Access the interface at: http://localhost:5002
+# All functionality is available through the web interface
+
+# Optional: Command-line library analysis tool
+python3 library_match_scanner.py
 ```
 
 ---
